@@ -1,6 +1,6 @@
 from springed_body import SpringedBody
 import numpy as np
-from evaluator import evaluate
+import evaluator
 from copy import deepcopy
 from typing import List
 import operator
@@ -9,15 +9,17 @@ import operator
 class GeneticAlgorithm:
     def __init__(self, hparams):
         self.hparams = hparams
-        self.population = []
+        self.rng = np.random.default_rng(self.hparams['random_seed'])
+        self.evaluator = evaluator.Evaluator()
+        self.population: List[SpringedBody] = []
         self.init_population()
 
     def init_population(self):
-        self.population = [SpringedBody() for _ in range(self.hparams['population_size'])]
+        self.population = [SpringedBody(self.rng) for i in range(self.hparams['population_size'])]
         for organism in self.population:
-            node_cnt = np.random.randint(2, 5)
+            node_cnt = 4
             for _ in range(node_cnt):
-                organism.add_node()
+                organism.add_node(self.rng)
 
 
 
@@ -25,26 +27,27 @@ class GeneticAlgorithm:
         self.population.sort(key=operator.attrgetter('score'), reverse=True)
 
     def evaluate_population(self):
-        for organism in self.population:
-            organism.score = evaluate(organism, False)
+        self.evaluator.evaluate_organisms(self.population)
+
+
 
     def mutate_organisms(self, organisms: List[SpringedBody]):
         for organism in organisms:
-            mutation_type = np.random.choice([0, 1, 2, 3, 4], p=[0.2, 0.2, 0.2, 0.2, 0.2])
+            mutation_type = self.rng.choice([0, 1, 2, 3, 4], p=[0.2, 0.2, 0.2, 0.2, 0.2])
             if mutation_type == 0:
-                organism.add_node()
+                organism.add_node(self.rng)
             elif mutation_type == 1:
-                organism.make_random_connection()
+                organism.make_random_connection(self.rng)
             elif mutation_type == 2:
-                organism.mutate_mass()
+                organism.mutate_mass(self.rng)
             elif mutation_type == 3:
-                organism.mutate_friction()
+                organism.mutate_friction(self.rng)
             else:
-                organism.mutate_spring_damping()
+                organism.mutate_spring_damping(self.rng)
 
 
     def make_offspring(self, count, population):
-        best_in_tournament = np.random.randint(0,len(population),(count,8)).min(axis=1)
+        best_in_tournament = self.rng.integers(0,len(population),(count,8)).min(axis=1)
         offspring = []
         for i in range(count):
             new_organism = deepcopy(population[best_in_tournament[i]])

@@ -1,0 +1,6 @@
+
+*.pk1
+
+__pycache__/
+
+debug.py
