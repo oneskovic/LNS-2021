@@ -8,7 +8,7 @@ import pymunk.pygame_util
 import pymunk.constraints
 import numpy as np
 from pymunk import Vec2d
-from springed_body import SpringedBody
+from springed_body import Organism
 
 pymunk.pygame_util.positive_y_is_up = True
 
@@ -21,7 +21,7 @@ def make_ball(x, y, friction, mass):
     shape.friction = friction
     return shape, body
 
-def construct_from_body(body: SpringedBody, space):
+def construct_from_body(body: Organism, space):
     nodes = []
     for node in body.nodes:
         x,y = body.node_positions[node]
@@ -52,11 +52,10 @@ def relax_joints(joints, len):
     for joint in joints:
         joint.rest_length = len
 
-def evaluate_with_display(body: SpringedBody):
+def evaluate_with_display(body: Organism, max_steps):
     pygame.init()
     screen = pygame.display.set_mode((600, 600))
     clock = pygame.time.Clock()
-    running = True
 
     space = pymunk.Space()
     space.gravity = (0.0, -900.0)
@@ -84,7 +83,7 @@ def evaluate_with_display(body: SpringedBody):
     remaining_times = np.array([contract_time, total_period - contract_time], dtype=int)
     current_state = 0
 
-    for t in range(1000):
+    for t in range(max_steps):
         if remaining_times[current_state] <= 0:
             current_state = (current_state+1)%2
             if current_state == 0:
@@ -123,8 +122,10 @@ def evaluate_with_display(body: SpringedBody):
         clock.tick(50)
         pygame.display.set_caption("fps: " + str(clock.get_fps()))
     pygame.quit()
+    score = np.array([n.position.x for n in nodes]).min()
+    return score
 
-def evaluate_without_display(body: SpringedBody):
+def evaluate_without_display(body: Organism, max_steps):
     space = pymunk.Space()
     space.gravity = (0.0, -900.0)
 
@@ -147,7 +148,7 @@ def evaluate_without_display(body: SpringedBody):
     state_times = np.array([contract_time, total_period-contract_time], dtype=int)
     remaining_times = np.array([contract_time, total_period-contract_time], dtype=int)
     current_state = 0
-    for t in range(1000):
+    for t in range(max_steps):
         if remaining_times[current_state] <= 0:
             current_state = (current_state+1)%2
             if current_state == 0:
@@ -165,15 +166,15 @@ def evaluate_without_display(body: SpringedBody):
     return score
 
 
-def evaluate(body : SpringedBody, display = True):
+def evaluate(body: Organism, display=True, max_steps=1000):
     if display:
-        return evaluate_with_display(body)
+        return evaluate_with_display(body,max_steps)
     else:
-        return evaluate_without_display(body)
+        return evaluate_without_display(body, max_steps)
 
 if __name__ == '__main__':
 
-    body = SpringedBody()
+    body = Organism()
     body.add_node()
     body.add_node()
     body.add_node()

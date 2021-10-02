@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class SpringedBody:
+class Organism:
     def __init__(self):
         self.score = 0.0            # For GA
 
@@ -16,6 +16,7 @@ class SpringedBody:
         self.node_positions = list()
         self.node_id = 0
         self.spring_id = 0
+        self.rng = np.random.default_rng(np.random.randint(0,1e7))
 
     def add_node(self):
         side_len = 30
@@ -39,8 +40,7 @@ class SpringedBody:
         self.node_id += 1
 
     def make_random_connection(self):
-        rng = np.random.default_rng()
-        nodes = np.sort(rng.choice(self.nodes, 2, replace=False))
+        nodes = np.sort(self.rng.choice(self.nodes, 2, replace=False))
         node1 = nodes[0]
         node2 = nodes[1]
         if (node1, node2) not in self.connected_nodes:
@@ -59,3 +59,7 @@ class SpringedBody:
     def mutate_spring_damping(self):
         spring = np.random.randint(0,len(self.springs_damping))
         self.springs_damping[spring] = np.random.uniform(0, 10)
+
+
+
+

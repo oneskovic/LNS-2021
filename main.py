@@ -1,24 +1,21 @@
+import matplotlib.pyplot as plt
+
 from genetic_algorithm import GeneticAlgorithm
 from evaluator import evaluate
-from springed_body import SpringedBody
+import numpy as np
 
-# test_organism = SpringedBody()
-# test_organism.add_node()
-# test_organism.add_node()
-# test_organism.add_node()
-# for _ in range(100):
-#     test_organism.make_random_connection()
-# evaluate(test_organism, True)
+np.random.seed(42)
 
-hparams = dict({
-    'population_size':1000
-})
-ga = GeneticAlgorithm(hparams)
+ga = GeneticAlgorithm(250)
 
-for t in range(1000):
-    if (t+1)%5 == 0:
-        best_organism = ga.population[0]
-        evaluate(best_organism, True)
+for t in range(1,25):
+    best_organism = ga.population[0]
+    evaluate(best_organism, False, 400)
     print(f'Starting generation {t}')
-    scores = ga.step()
+    scores = ga.make_new_generation()
+    max_score = scores.max()
+    avg_score = scores.mean()
+
     print(f'Done max score: {scores.max()}, average score: {scores.mean()}')
+
+plt.show()

@@ -1,4 +1,4 @@
-from springed_body import SpringedBody
+from springed_body import Organism
 import numpy as np
 from evaluator import evaluate
 from copy import deepcopy
@@ -7,19 +7,17 @@ import operator
 
 
 class GeneticAlgorithm:
-    def __init__(self, hparams):
-        self.hparams = hparams
+    def __init__(self, pop_size):
+        self.population_size = pop_size
         self.population = []
         self.init_population()
 
     def init_population(self):
-        self.population = [SpringedBody() for _ in range(self.hparams['population_size'])]
+        self.population = [Organism() for _ in range(self.population_size)]
         for organism in self.population:
-            node_cnt = np.random.randint(2, 5)
+            node_cnt = 4
             for _ in range(node_cnt):
                 organism.add_node()
-
-
 
         self.evaluate_population()
         self.population.sort(key=operator.attrgetter('score'), reverse=True)
@@ -28,9 +26,9 @@ class GeneticAlgorithm:
         for organism in self.population:
             organism.score = evaluate(organism, False)
 
-    def mutate_organisms(self, organisms: List[SpringedBody]):
+    def mutate_organisms(self, organisms: List[Organism]):
         for organism in organisms:
-            mutation_type = np.random.choice([0, 1, 2, 3, 4], p=[0.2, 0.2, 0.2, 0.2, 0.2])
+            mutation_type = np.random.choice([0, 1, 2, 3, 4], p=[0.0, 0.25, 0.25, 0.25, 0.25])
             if mutation_type == 0:
                 organism.add_node()
             elif mutation_type == 1:
@@ -52,15 +50,15 @@ class GeneticAlgorithm:
         self.mutate_organisms(offspring)
         return offspring
 
-    def step(self):
-        elite_cnt = int(len(self.population)*0.2)
-        remove_cnt = int(len(self.population)*0.2)
-        new_population = self.population[:elite_cnt]
+    def make_new_generation(self):
+        elite_cnt = int(self.population_size*0.2)
+        remove_cnt = int(self.population_size*0.2)
+        new_population = self.population[:elite_cnt]        # Uzmi "elite_cnt" najboljih i dodaj ih u new_population
 
-        del self.population[-remove_cnt:]
+        del self.population[-remove_cnt:]                   # Obrisi poslednjih "remove_cnt" iz self.population
 
-        offspring = self.make_offspring(self.hparams['population_size'] - elite_cnt, self.population)
-        new_population += offspring
+        offspring = self.make_offspring(self.population_size - elite_cnt, self.population)      # Napravi novu decu
+        new_population += offspring                         # Dodaj decu na new_population
         self.population = new_population
 
         self.evaluate_population()
